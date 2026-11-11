@@ -301,6 +301,22 @@ export function App() {
             <span className={settings.level === 3 ? 'active' : ''}>Unhinged</span>
           </div>
         </div>
+
+        <div className="theme-control">
+          <span className="control-label">Website theme</span>
+          <div className="segmented-control">
+            {(['system', 'light', 'dark'] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                className={`segment-btn ${settings.pageTheme === mode ? 'active' : ''}`}
+                onClick={() => void patch({ pageTheme: mode })}
+              >
+                {mode.charAt(0).toUpperCase() + mode.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
       </section>
 
       <footer className="footer">

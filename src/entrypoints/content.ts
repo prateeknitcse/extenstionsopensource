@@ -10,6 +10,7 @@ import {
 } from '@/lib/fonts';
 import type { Font } from '@/lib/fonts';
 import { dailyFont, isSiteEnabled, normalizeHost, resolveFont } from '@/lib/state';
+import type { ThemeMode } from '@/lib/state';
 import { getSettings, readLocal, sendMessage } from '@/lib/storage';
 import type { Message, TabOverrideReply } from '@/lib/storage';
 
@@ -27,6 +28,7 @@ export default defineContentScript({
     let observer: MutationObserver | null = null;
     let active: Font | null = null;
     let appliedInputs = false;
+    let appliedPageTheme: ThemeMode = 'system';
     let generation = 0;
     let siteEnabled = false;
     let includeInputs = false;
@@ -145,19 +147,27 @@ export default defineContentScript({
       clearCss();
       if (active) unloadFont(active);
       active = null;
+      appliedPageTheme = 'system';
     }
 
     /** Preload the font, then swap the rules. Failure keeps the page's own font. */
-    async function apply(font: Font): Promise<void> {
-      if (active?.id === font.id && appliedInputs === includeInputs) return;
+    async function apply(font: Font, pageTheme: ThemeMode = 'system'): Promise<void> {
+      if (
+        active?.id === font.id &&
+        appliedInputs === includeInputs &&
+        appliedPageTheme === pageTheme
+      ) {
+        return;
+      }
       const gen = ++generation;
       const face = await loadFont(font);
       if (gen !== generation) return; // a newer request superseded this one
       if (!face) return; // silent fallback to the page's original font
-      setCss(buildCss(font, { includeInputs }));
+      setCss(buildCss(font, { includeInputs, pageTheme }));
       const previous = active;
       active = font;
       appliedInputs = includeInputs;
+      appliedPageTheme = pageTheme;
       if (previous && previous.id !== font.id) unloadFont(previous);
       startObserver();
       collect(document.documentElement);
@@ -192,7 +202,7 @@ export default defineContentScript({
           now,
           isKnown: (id) => getFontById(id) !== undefined,
         });
-        await apply(getFontById(fontId) ?? daily);
+        await apply(getFontById(fontId) ?? daily, settings.pageTheme);
       } catch {
         // Extension context invalidated or storage unavailable: leave the page alone.
       }

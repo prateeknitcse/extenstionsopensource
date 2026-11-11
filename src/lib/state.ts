@@ -4,6 +4,12 @@ import { pickDaily, toISODate } from './pick';
 
 export type OverrideMode = 'tab' | 'site' | 'global';
 export type FontSource = OverrideMode | 'daily' | 'pinned';
+export type ThemeMode = 'system' | 'light' | 'dark';
+export const THEME_MODES: readonly ThemeMode[] = ['system', 'light', 'dark'];
+
+export function isThemeMode(value: unknown): value is ThemeMode {
+  return value === 'system' || value === 'light' || value === 'dark';
+}
 
 /** A saved override. `site` and `global` expire at local midnight. */
 export interface StoredOverride {
@@ -30,6 +36,7 @@ export interface Settings {
   blocklist: string[];
   allowlist: string[];
   pinnedSites: Record<string, string>;
+  pageTheme: ThemeMode;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -43,6 +50,7 @@ export const DEFAULT_SETTINGS: Settings = {
   blocklist: [],
   allowlist: [],
   pinnedSites: {},
+  pageTheme: 'system',
 };
 
 // ---------- time ----------
@@ -243,5 +251,6 @@ export function sanitizeSettings(raw: unknown): Settings {
     blocklist: cleanHosts(r.blocklist),
     allowlist: cleanHosts(r.allowlist),
     pinnedSites: cleanPinnedSites(r.pinnedSites),
+    pageTheme: isThemeMode(r.pageTheme) ? r.pageTheme : DEFAULT_SETTINGS.pageTheme,
   };
 }

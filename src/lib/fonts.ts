@@ -205,6 +205,7 @@ export const SKIP_ATTRIBUTE = 'data-cf-skip';
 
 export interface CssOptions {
   includeInputs: boolean;
+  pageTheme?: 'system' | 'light' | 'dark';
 }
 
 /** Build the override stylesheet for a font. Pure, so it is easy to test. */
@@ -225,5 +226,13 @@ export function buildCss(font: Font, options: CssOptions): string {
   const notClause = `:not(${excluded.join(', ')})`;
   const selector = elements.map((el) => `${el}${notClause}`).join(',\n');
   const family = `"${familyName(font)}", ${genericFallback(font)}`;
-  return `${selector} {\n  font-family: ${family} !important;\n}\n`;
+
+  let themeBlock = '';
+  if (options.pageTheme === 'dark') {
+    themeBlock = 'html, :root {\n  color-scheme: dark !important;\n}\n';
+  } else if (options.pageTheme === 'light') {
+    themeBlock = 'html, :root {\n  color-scheme: light !important;\n}\n';
+  }
+
+  return `${themeBlock}${selector} {\n  font-family: ${family} !important;\n}\n`;
 }

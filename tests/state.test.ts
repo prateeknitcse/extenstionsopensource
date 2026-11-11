@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { ALL_FONTS, buildCss } from '../src/lib/fonts';
 import {
   DEFAULT_SETTINGS,
   createOverride,
@@ -212,5 +213,31 @@ describe('sanitizeSettings', () => {
     expect(s.blocklist).toEqual(['a.com']);
     expect(s.listMode).toBe('allowlist');
     expect(s.pinnedSites).toEqual({ 'example.com': 'roboto' });
+    expect(s.pageTheme).toBe('system');
+  });
+
+  it('preserves explicit pageTheme and falls back on invalid values', () => {
+    expect(sanitizeSettings({ pageTheme: 'dark' }).pageTheme).toBe('dark');
+    expect(sanitizeSettings({ pageTheme: 'light' }).pageTheme).toBe('light');
+    expect(sanitizeSettings({ pageTheme: 'invalid' }).pageTheme).toBe('system');
+  });
+});
+
+describe('buildCss', () => {
+  const dummyFont = ALL_FONTS[0]!;
+
+  it('generates color-scheme for dark pageTheme', () => {
+    const css = buildCss(dummyFont, { includeInputs: false, pageTheme: 'dark' });
+    expect(css).toContain('color-scheme: dark !important;');
+  });
+
+  it('generates color-scheme for light pageTheme', () => {
+    const css = buildCss(dummyFont, { includeInputs: false, pageTheme: 'light' });
+    expect(css).toContain('color-scheme: light !important;');
+  });
+
+  it('does not force color-scheme for system pageTheme', () => {
+    const css = buildCss(dummyFont, { includeInputs: false, pageTheme: 'system' });
+    expect(css).not.toContain('color-scheme:');
   });
 });

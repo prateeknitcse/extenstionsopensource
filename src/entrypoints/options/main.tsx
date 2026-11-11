@@ -157,6 +157,26 @@ function Options() {
       </section>
 
       <section>
+        <h2>Website theme</h2>
+        <p className="hint">
+          Override the color scheme of websites you visit, or follow system defaults.
+        </p>
+        <div className="grid">
+          {(['system', 'light', 'dark'] as const).map((mode) => (
+            <label key={mode}>
+              <input
+                type="radio"
+                name="pageTheme"
+                checked={settings.pageTheme === mode}
+                onChange={() => void save({ pageTheme: mode })}
+              />
+              {mode.charAt(0).toUpperCase() + mode.slice(1)}
+            </label>
+          ))}
+        </div>
+      </section>
+
+      <section>
         <h2>Sites</h2>
         <label>
           <input
